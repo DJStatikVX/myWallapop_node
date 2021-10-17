@@ -1,0 +1,109 @@
+<div id="widget-ofertas">
+    <h2>Ofertas disponibles</h2>
+    <button class="btn" onclick="cargarOfertas()" >Actualizar</button>
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th onclick="ordenar('titulo')">Titulo</th>
+            <th onclick="ordenar('detalle')">Descripción</th>
+            <th onclick="ordenar('vendedor')">Vendedor</th>
+            <th onclick="ordenar('precio')">Precio</th>
+            <th class="col-md-1"></th>
+        </tr>
+        </thead>
+        <tbody id="tablaCuerpo">
+
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
+
+<script>
+    window.history.pushState("", "", "/cliente.html?w=ofertas");
+    window.clearTimeout(idTimeout);
+    var ofertas;
+    var ofertaChat; //oferta con la que se abrira el chat
+    var interlocutor;
+    function cargarOfertas(){
+        $.ajax({
+            url: URLbase + "/ofertas",
+            type: "GET",
+            data: { },
+            dataType: 'json',
+            headers: { "token": token },
+            success: function(respuesta) {
+                ofertas = respuesta;
+                actualizarTabla(ofertas);
+            },
+            error : function (error){
+                $( "#contenedor-principal" ).load("widget-login.html");
+            }
+        });
+    }
+    function actualizarTabla(ofertasMostrar){
+        $( "#tablaCuerpo" ).empty(); // Vaciar la tabla
+        for (i = 0; i < ofertasMostrar.length; i++) {
+            let enviar = ofertasMostrar[i].comprador === null ? "<a class=\"btn btn-primary\" onclick = \"abrirChat('" +  ofertasMostrar[i]._id  + "','" +   ofertasMostrar[i].vendedor  + "','" +   ofertasMostrar[i].titulo  + "')\" id=\"mensaje"+ ofertasMostrar[i]._id + "\"><span class='glyphicon glyphicon-send' aria-hidden='true' style='margin-right: 0.5em'></span> Enviar mensaje </a>" : "Oferta ya comprada"
+            $( "#tablaCuerpo" ).append(
+                "<tr id="+ofertasMostrar[i]._id+">"+
+                "<td>"+ofertasMostrar[i].titulo+"</td>" +
+                "<td>"+ofertasMostrar[i].detalle+"</td>" +
+                "<td>"+ofertasMostrar[i].vendedor+"</td>" +
+                "<td>"+ofertasMostrar[i].precio+ " €</td>" +
+                "<td>"  + enviar + "</td>" +
+                "</tr>" );
+        }
+    }
+
+
+    cargarOfertas();
+
+    function ordenar(property){
+        $.ajax({
+            url: URLbase + "/ofertas",
+            type: "GET",
+            data: { },
+            dataType: 'json',
+            headers: { "token": token },
+            success: function(respuesta) {
+                ofertas = respuesta;
+                ofertas.sort(dynamicSort(property))
+                actualizarTabla(ofertas);
+            },
+            error : function (error){
+                $( "#contenedor-principal" ).load("widget-login.html");
+            }
+        });
+    }
+
+    function abrirChat(ofertaid, vendedor, titulo){
+        ofertaChat = {
+            _id : ofertaid,
+            vendedor : vendedor,
+            titulo : titulo
+        }
+        interlocutor = vendedor
+
+        $("#contenedor-principal").load("widget-conversacion.html");
+    }
+
+    /**
+     * Función auxiliar para ordenar elementos dada una propiedad
+     * @param property propiedad o criterio por el que se quiere ordenar
+     * @returns {function(*, *)} resultado de comparar elementos según property
+     */
+    function dynamicSort(property) {
+        var sortOrder = 1;
+        if(property[0] === "-") {
+            sortOrder = -1;
+            property = property.substr(1);
+        }
+        return function (a,b) {
+            var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+            return result * sortOrder;
+        }
+    }
+
+</script>

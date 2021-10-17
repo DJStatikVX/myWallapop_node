@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block titulo %} Listado de usuarios {% endblock %}
+
+{% block contenido_principal %}
+<h2>Listado de usuarios</h2>
+<p>Los usuarios que actualmente figuran en el sistema son los siguientes:</p>
+<form action="/usuario/eliminar" method="post">
+  <input type="hidden" name="${_csrf.parameterName}"
+         value="${_csrf.token}" />
+  <div class="table-responsive">
+    <table class="table table-hover" id="tablaUsuarios">
+      <thead>
+      <tr>
+        <th></th>
+        <th>Email</th>
+        <th>Nombre</th>
+        <th>Apellidos</th>
+      </tr>
+      </thead>
+
+      <tbody id="tabla-usuarios-Body">
+      {% for usuario in usuarios %}
+      <tr>
+        <td><input id="{{ usuario.email }}" type="checkbox" name="checkboxEliminar" value="{{ usuario.email }}"></td>
+        <td>{{ usuario.email }}</td>
+        <td>{{ usuario.nombre }}</td>
+        <td>{{ usuario.apellidos }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <input class="btn btn-danger" id="boton-borrar" type="submit" value="Eliminar">
+  </p>
+  <input type="hidden" name="${_csrf.parameterName}"
+         value="${_csrf.token}" />
+</form>
+
+{% endblock %}

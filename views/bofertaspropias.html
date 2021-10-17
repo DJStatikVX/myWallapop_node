@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block titulo %} Mis Ofertas {% endblock %}
+
+{% block contenido_principal %}
+<h2>Mis Ofertas</h2>
+<table class="col-xs-6 col-sm-6 col-md-6 col-lg-3">
+    <table class="table table-hover" id="tableOffers">
+        <thead>
+        <tr>
+            <th>Título</th>
+            <th>Descripcion</th>
+            <th>Precio</th>
+            <th>Comprador</th>
+            <th>Detalle</th>
+            <th>Eliminar</th>
+        </tr>
+
+
+        </thead>
+        <tbody name="tableRows">
+        {% for oferta in ofertas %}
+        <tr>
+            <td class="text-left">{{oferta.titulo}}</td>
+            <td class="text-left">{{oferta.detalle}}</td>
+            <td class="text-left">{{oferta.precio}}€</td>
+            {% if oferta.comprador %}
+            <td class="text-left">{{oferta.comprador}}</td>
+            {% else %}
+            <td class="text-left"> No comprada</td>
+            {% endif %}
+            <td class="text-left"><a href = "/oferta/detalle/{{oferta._id.toString()}}" class="btn btn-info"> Ver detalles</a></td>
+            {% if oferta.puedeEliminar %}
+            <td class="text-left"><a href="/oferta/eliminar/{{oferta._id.toString()}}" class="btn btn-danger"> Eliminar  </a> </td>
+            {% endif %}
+            {% if oferta.promocionada %}
+            <td class="text-left"> Oferta Promocionada</td>
+            {% elseif usuario.saldo >= 20 %}
+            <td class="text-left"><a href="/oferta/promocionar/{{oferta._id.toString()}}" class="btn btn-success"> Promocionar </a> </td>
+            {% else %}
+            <td class="text-left"> Saldo insuficiente </td>
+            {% endif %}
+        </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+</table>
+
+{% endblock %}

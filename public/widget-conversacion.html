@@ -1,0 +1,142 @@
+<!-- Posibles errores se muestran aquí -->
+<div id="div-errores">
+
+</div>
+<!-- Contenido de la sección -->
+<div id="widget-conversacion">
+  <h2 id="title-conver">Chat con</h2>
+    <div class="panel panel-default" id = "messages" style = "height : 65vh; overflow-y: scroll">
+
+    </div>
+
+
+    <div class="form-inline">
+      <input type="text" class="form-control form-control-lg"
+             id="sendMessage" name="message" required=/>
+      <button id="enviar" type="submit" onclick = enviarMensaje()
+              class="btn btn-primary">
+          <span class='glyphicon glyphicon-send' aria-hidden='true' style='margin-right: 0.5em'></span>
+          Enviar
+      </button>
+    </div>
+</div>
+
+
+<script>
+  window.history.pushState("", "", "/cliente.html?w=chat");
+  var mensajesVista = [];   // variable para comparar si hay mansajes nuevos
+
+  function actualizarTitulo(){
+      let titleConver = $("#title-conver")
+      titleConver.empty();
+      titleConver.append("Conversacion con: " + interlocutor + " sobre " + ofertaChat.titulo)
+  }
+
+  // Primera carga de mensajes
+  function cargarMensajes(){
+      $.ajax({
+        url: URLbase + "/mensaje/lista/" + ofertaChat._id + "?destinatario=" + interlocutor,
+        type: "GET",
+        data: { },
+        dataType: 'json',
+        headers: { "token": token },
+        success: function(mensajes) {
+            if(mensajes.length > mensajesVista.length){
+                actualizarMensajes(mensajes);
+                mensajesVista = mensajes
+
+            }
+
+
+            if (window.location.href.endsWith("cliente.html?w=chat")) {
+                idTimeout = window.setTimeout(cargarMensajes, 1000);
+            }
+        },
+        error : function (error){
+          $( "#contenedor-principal" ).load("widget-login.html");
+        }
+      });
+  }
+
+  // Posteriores refrescos de carga de mensajes
+  function actualizarMensajes(mensajes){
+      let messages = $( "#messages" )
+      messages.empty()
+      for (i = 0; i < mensajes.length; i++) {
+          let fecha = new Date(mensajes[i].fecha);
+          let fechaString = "(" + [fecha.getDate(), fecha.getMonth() + 1, fecha.getFullYear()].join("/") + " "
+              + [fecha.getHours(), fecha.getMinutes(), fecha.getSeconds()].join(":") + ")";
+          var posicion = mensajes[i].remitente === usuario ? "text-right" : "";
+
+          // Establecemos los iconos de los mensajes según se han leído o no
+          var icono = "";
+          if (mensajes[i].remitente === usuario) {
+              if (!mensajes[i].leido) {
+                  icono = "<span class=\"glyphicon glyphicon-eye-close\"  style=\"color:red\"></span>"
+              } else {
+                  icono = "<span class=\"glyphicon glyphicon-eye-open\"   style=\"color:blue\"></span>"
+              }
+          }
+          messages.append(
+              " <div class='panel-heading " + posicion + "'>" + mensajes[i].remitente + " " + fechaString
+              + " " + icono + "</div> <div class='panel-body " + posicion + "' > " + mensajes[i].texto + "</div>"
+          );
+
+          // marcar los mensajes como leidos
+          if (!mensajes[i].leido && mensajes[i].remitente !== usuario) {
+              marcarLeido(mensajes[i]);
+          }
+    }
+
+    // Hacemos scroll al último mensaje recibido
+    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    $( "#sendMessage" ).val("")
+
+  }
+
+  function enviarMensaje(){
+    $.ajax({
+      url: URLbase + "/mensaje/enviar/" + ofertaChat._id,
+      type: "POST",
+      data: { texto : $( "#sendMessage" ).val(),
+      destino : interlocutor},
+      dataType: 'json',
+      headers: { "token": token },
+      success: function(respuesta) {
+        actualizarTitulo()
+        cargarMensajes()
+
+      },
+      error : function (error){
+          $( "#contenedor-principal" ).load("widget-conversaciones.html");
+          $("#widget-conversaciones")
+              .prepend("<div class='alert alert-danger'>No puede enviar un mensaje a esta oferta, ya esta comprada</div>");
+
+      }
+    });
+
+  }
+
+  function  marcarLeido(mensaje){
+    $.ajax({
+      url: URLbase + "/mensaje/leido/" + mensaje._id,
+      type: "get",
+      data: {},
+      dataType: 'json',
+      headers: { "token": token },
+      success: function() {
+      },
+      error : function (error){
+        $( "#contenedor-principal" ).load("widget-login.html");
+      }
+    });
+  }
+  actualizarTitulo()
+  cargarMensajes()
+
+  $(document).keypress(function(e){
+    if (e.which === 13){
+      $("#enviar").click();
+    }
+  });
+</script>

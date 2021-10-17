@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block titulo %} Registrar usuario {% endblock %}
+
+{% block contenido_principal %}
+<h2>Ofertas compradas</h2>
+<table class="col-xs-6 col-sm-6 col-md-4 col-lg-3">
+    <table class="table table-hover" id="tableOffers">
+        <thead>
+        <tr>
+            <th>Título</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Vendedor</th>
+        </tr>
+
+
+        </thead>
+        <tbody name="tableRows">
+
+
+        {% for oferta in ofertas %}
+        <tr>
+            <td class="text-left">{{oferta.titulo}}</td>
+            <td class="text-left">{{oferta.detalle}}</td>
+            <td class="text-left">{{oferta.precio}}€</td>
+            <td class="text-left"> {{oferta.vendedor}}</td>
+            <td class="text-left"><a href = "/oferta/detalle/{{oferta._id.toString()}}" class="btn btn-info"> Ver detalles</a></td>
+        </tr>
+
+        {% endfor %}
+        </tbody>
+    </table >
+</table>
+</div>
+
+{% endblock %}

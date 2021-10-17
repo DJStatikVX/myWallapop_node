@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>jQuery myWallapop</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="js/cookie.js"></script>
+</head>
+<body>
+
+<!-- Barra de Navegación superior -->
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="/"><img src="/img/logo.png" alt="logo"/></a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li><a onclick="widgetOfertas()">Ofertas</a></li>
+        <li><a onclick="widgetConversaciones()">Conversaciones</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a onclick="widgetLogin()"><span class="glyphicon glyphicon-log-in"></span> Identifícate</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Contenido -->
+<div class="container" id="contenedor-principal">
+
+</div>
+
+<script>
+  // Variables generales del cliente
+  let token;  // autenticación de usuario
+  let URLbase = "http://localhost:8081/api";
+  var idTimeout;  // refresco automático para el chat
+  var idTimeoutMsj; // refresco automático para mensajes pendientes
+
+  // Solo acceder a los widgets si hay token
+  if (Cookies.get("token") != null) {
+    token = Cookies.get("token");
+
+    let url = new URL(window.location.href);
+    let w = url.searchParams.get("w");
+    if (w === "login") {
+      $("#contenedor-principal").load("widget-login.html");
+    } else if (w === "ofertas") {
+      $("#contenedor-principal").load("widget-ofertas.html");
+    } else if (w === "conversaciones") {
+      $("#contenedor-principal").load("widget-conversaciones.html");
+    } else if (w === "chat") {
+      $("#contenedor-principal").load("widget-conversacion.html");
+    } else {
+      $("#contenedor-principal").load("widget-login.html");
+    }
+    // Caso contrario, redirigimos a login para que se autentique
+  } else {
+    $("#contenedor-principal").load("widget-login.html");
+  }
+
+  // Sección de inicio de sesión
+  function widgetLogin() {
+    $("#contenedor-principal").load("widget-login.html");
+  }
+
+  // Sección de ofertas
+  function widgetOfertas() {
+    $("#contenedor-principal").load("widget-ofertas.html");
+  }
+
+  // Sección de conversaciones
+  function widgetConversaciones() {
+    $("#contenedor-principal").load("widget-conversaciones.html");
+  }
+
+</script>

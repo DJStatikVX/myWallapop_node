@@ -1,0 +1,68 @@
+<!-- Sección de posibles errores se muestran aquí -->
+<div id="div-errores">
+
+</div>
+<div id="widget-login">
+  <h2>Identificarse</h2>
+  <form class="form-horizontal">
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="email">Email:</label>
+      <div class="col-sm-10">
+        <input type="email" class="form-control" name="email"
+               placeholder="email@email.com" id="email" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label col-sm-2" for="password">Password:</label>
+      <div class="col-sm-10">
+        <input type="password" class="form-control" name="password"
+               placeholder="contraseña" id="password"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-10">
+        <button type="button" id="boton-login" class="btn btn-primary"><span class='glyphicon glyphicon-log-in' aria-hidden='true' style='margin-right: 0.5em'></span>Iniciar sesión</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  window.history.pushState("", "", "/cliente.html?w=login");
+  window.clearTimeout(idTimeout);
+  var usuario;
+  $("#boton-login").click(function() {
+    if ($("#email").val().trim().length === 0 || $("#password").val().trim().length === 0) {
+      $("#div-errores")
+              .html("<div class='alert alert-danger'>Debes rellenar todos los campos.</div>");
+    } else {
+      $.ajax({
+        url: URLbase + "/autenticar",
+        type: "POST",
+        data: {
+          email: $("#email").val(),
+          password: $("#password").val()
+        },
+        dataType: 'json',
+        success: function (respuesta) {
+          token = respuesta.token;
+          Cookies.set("token", respuesta.token);
+          usuario = $("#email").val();
+          $("#contenedor-principal").load("widget-ofertas.html");
+        },
+        error: function (error) {
+          Cookies.remove("token");
+          $("#widget-login")
+                  .prepend("<div class='alert alert-danger'>Email o contraseña incorrectos. Por favor, inténtelo de nuevo.</div>");
+        }
+      });
+    }
+  });
+
+  // Para iniciar sesión pulsando la tecla Intro
+  $(document).keypress(function(e){
+    if (e.which === 13){
+      $("#boton-login").click();
+    }
+  });
+</script>

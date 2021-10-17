@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block titulo %} Inicio – myWallapop {% endblock %}
+
+{% block contenido_principal %}
+<div class="row text-center">
+{% if usuario.perfil == "Administrador" %}
+<h2>¡Bienvenido, Administrador!</h2>
+{% else %}
+<h2>¡Bienvenido a myWallapop!</h2>
+<h3>Tu plataforma de compras online</h3>
+{% endif %}
+{% if usuario.perfil != "Administrador" && ofertas.length > 0 %}
+<h4 style="margin-top: 1em">Ofertas promocionadas:</h4>
+<div class="row justify-content-center">
+        <table class="table table-responsive" id="tableOffers">
+            <thead>
+            <tr>
+                <th>Título</th>
+                <th>Descripcion</th>
+                <th>Precio</th>
+                <th>Vendedor</th>
+                <th>Detalle</th>
+            </tr>
+
+
+            </thead>
+            <tbody name="tableRows">
+
+
+            {% for oferta in ofertas %}
+            <tr>
+                <td class="text-left">{{oferta.titulo}}</td>
+                <td class="text-left">{{oferta.detalle}}</td>
+                <td class="text-left">{{oferta.precio}}€</td>
+                <td class="text-left"> {{oferta.vendedor}}</td>
+                <td class="text-left"><a href = "/oferta/detalle/{{oferta._id.toString()}}" class="btn btn-info"> Ver detalles</a></td>
+                {% if usuario == null %}
+                <td class="text-left"><a href = "/identificarse"> Identificarse para comprar</a></td>
+                {% elseif oferta.vendedor == usuario.email %}
+                <td class="text-left"> Oferta Propia</td>
+                {% elseif oferta.comprador != null %}
+                <td class="text-left"> Vendida</td>
+                {% elseif oferta.precio < usuario.saldo %}
+                <td class="text-left"><a href = "/oferta/comprar/{{oferta._id.toString()}}" class="btn btn-success"> Comprar</a></td>
+                {% else %}
+                <td class="text-left"> Saldo insuficiente</td>
+                {% endif %}
+
+            </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+</div>
+<!-- Paginación mostrar la actual y 2 anteriores y dos siguientes -->
+<div class="row text-center">
+    <ul class="pagination">
+        {% for pagina in paginas %}
+        <li class="page-item" id="pi-{{pagina}}">
+            <a class="page-link" href="/inicio?pg={{pagina}}" >{{pagina}}</a>
+        </li>
+        {% endfor %}
+        <script>
+            $("#pi-" + "{{ actual}}").addClass("active");
+        </script>
+    </ul>
+</div>
+</div>
+{% endif %}
+{% endblock %}

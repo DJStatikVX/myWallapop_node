@@ -1,0 +1,124 @@
+<div id="widget-conversaciones">
+  <h2>Listado de conversaciones</h2>
+  <button class="btn" onclick="cargarConversaciones()">Actualizar</button>
+  <p id="cargando"> Cargando conversaciones...</p>
+
+  <table class="table table-hover">
+    <thead>
+    <tr>
+      <th>Oferta</th>
+      <th>Vendedor</th>
+      <th>Interesado</th>
+      <th class="col-md-1"></th>
+    </tr>
+    </thead>
+    <tbody id="tablaCuerpo">
+
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
+
+<script>
+  window.history.pushState("", "", "/cliente.html?w=conversaciones");
+  var conversaciones;
+  var ofertaChat; // conversación a reanudar con el chat
+
+  function cargarConversaciones() {
+    $.ajax({
+      url: URLbase + "/conversacion/lista",
+      type: "GET",
+      data: { },
+      dataType: 'json',
+      headers: { "token": token },
+      success: function(respuesta) {
+        conversaciones = respuesta;
+        actualizarTabla(conversaciones);
+      },
+      error: function(error) {
+        $("#contenedor-principal").load("widget-login.html");
+      }
+    });
+  }
+
+  cargarConversaciones();
+
+  // Vuelva las conversaciones consultadas a una tabla
+  function actualizarTabla(conversaciones){
+    $("#tablaCuerpo").empty(); // vaciamos la tabla
+    for (let i = 0; i < conversaciones.length; i++) {
+      $("#tablaCuerpo").append(
+              "<tr id="+conversaciones[i]._id+">"+
+                "<td><span style='margin-right: 0.5em' class='badge badge-pill badge-danger' id=\"mensajesNoLeidos_" + conversaciones[i]._id + "\"></span>"+conversaciones[i].tituloOferta+"</td>" +
+                "<td>"+ conversaciones[i].emailVendedor +"</td>" +
+                "<td>"+ conversaciones[i].emailInteresado +"</td>" +
+                "<td> <button class=\"btn btn-primary\" onclick = \"abrirChat('" +  conversaciones[i].oferta  + "','"
+                +   conversaciones[i].emailVendedor  + "','" +  conversaciones[i].emailInteresado  + "','" + conversaciones[i].tituloOferta  + "')\" id=\"mensaje"
+                + conversaciones[i]._id + "\"><span class='glyphicon glyphicon-send' aria-hidden='true' style='margin-right: 0.5em'></span> Enviar mensaje </button></td>" +
+                "<td> <button class=\"btn btn-danger\" onclick = \"eliminarChat('" +  conversaciones[i]._id + "')\" id=\"eliminar"
+                + conversaciones[i]._id + "\"><span class='glyphicon glyphicon-trash' aria-hidden='true' style='margin-right: 0.5em'></span> Eliminar </button></td>" +
+                "</tr>" );
+    }
+    cargarMensajesNoLeidos( conversaciones)
+    // Refresca cada segundo si el usuario sigue en la sección Conversaciones
+    if (window.location.href.endsWith("cliente.html?w=conversaciones")) {
+      idTimeoutMsj = window.setTimeout(cargarConversaciones, 1000);
+    }
+    // Eliminar mensaje "Cargando conversaciones..." tras terminar de cargar
+    $("#cargando").remove();
+  }
+
+
+  function cargarMensajesNoLeidos( conversaciones) {
+    for (let i = 0; i < conversaciones.length; i++) {
+      $.ajax({
+        url: URLbase + "/conversacion/pendientes/" + conversaciones[i]._id,
+        type: "GET",
+        data: { },
+        async: false,
+        dataType: 'json',
+        headers: { "token": token },
+        success: function(result) {
+          // Colocamos la burbuja de un color u otro en cada conversación (rojo si hay mensajes nuevos)
+          let burbuja = $("#mensajesNoLeidos_" + conversaciones[i]._id);
+          burbuja.text(result.numero);
+          if (result.numero > 0) {
+            burbuja.css({"background-color": "red"});
+          }
+        },
+        error: function(error) {
+          $("#contenedor-principal").load("widget-login.html");
+        }
+      });
+    }
+  }
+
+  function abrirChat(ofertaId, vendedor,interesado, titulo){
+    interlocutor = usuario === vendedor ? interesado : vendedor
+    ofertaChat = {
+      _id : ofertaId,
+      vendedor : vendedor,
+      titulo : titulo
+    };
+    $("#contenedor-principal").load("widget-conversacion.html");
+  }
+
+  function eliminarChat(ofertaId) {
+    $.ajax({
+      url: URLbase + "/conversacion/eliminar/" + ofertaId,
+      type: "GET",
+      data: { },
+      dataType: 'json',
+      headers: { "token": token },
+      success: function(respuesta) {
+        $("#" + ofertaId).remove();
+      },
+      error: function(error) {
+        $("#contenedor-principal").load("widget-login.html");
+      }
+    });
+  }
+
+</script>
